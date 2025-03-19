@@ -7,4 +7,17 @@ async function createUser(fullname, email, passwordHash) {
   );
 }
 
-export { createUser };
+async function addMembership(id) {
+  await pool.query(
+    'UPDATE "members-only" SET "membership-status" = true WHERE id = $1;',
+    [id]
+  );
+}
+
+async function addAdmin(id) {
+  await pool.query('UPDATE "members-only" SET admin = true WHERE id = $1;', [
+    id,
+  ]);
+}
+
+export { createUser, addMembership, addAdmin };
