@@ -13,6 +13,7 @@
   "dependencies": {
     "connect-flash": "^0.1.1",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "passport": "^0.7.0"
   }
 }
