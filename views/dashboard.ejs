@@ -55,6 +55,11 @@
         color: #0066cc;
       }
 
+      .flex-list {
+        display: flex;
+        justify-content: space-between;
+      }
+
       form {
         margin-bottom: 20px;
         padding: 15px;
@@ -113,8 +118,35 @@
     <ul class="folders-list">
       <% if (folders && folders.length > 0) { %> <%
       folders.forEach(function(folder) { %>
-      <li>
+      <li class="flex-list">
         <a href="/dashboard/folder/<%= folder.id %>"><%= folder.name %></a>
+        <div>
+          <button type="button" onclick="toggleRenameForm('<%= folder.id %>')">
+            Rename
+          </button>
+          <form
+            id="renameForm-<%= folder.id %>"
+            action="/dashboard/folder/rename"
+            method="post"
+            style="display: none; margin-top: 5px"
+          >
+            <input type="hidden" name="folderId" value="<%= folder.id %>" />
+            <input
+              type="text"
+              name="newFolderName"
+              value="<%= folder.name %>"
+              required
+            />
+            <button type="submit">Save</button>
+          </form>
+          <form
+            action="/dashboard/folder/delete?folderId=<%= folder.id %>"
+            method="post"
+            style="display: inline"
+          >
+            <button type="submit">Delete</button>
+          </form>
+        </div>
       </li>
       <% }); %> <% } else { %>
       <li>No folders created yet</li>
@@ -149,10 +181,19 @@
         <a href="/dashboard/view/<%= file.id %>"><%= file.name %></a>
         <a href="<%= file.path %>" class="download-link" download>(Download)</a>
         <% } %>
+        <br />
+        <%= file.createdAt %>
       </li>
       <% }); %> <% } else { %>
       <li>No files outside folders</li>
       <% } %>
     </ul>
   </body>
+
+  <script>
+    function toggleRenameForm(folderId) {
+      const form = document.getElementById(`renameForm-${folderId}`);
+      form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+  </script>
 </html>

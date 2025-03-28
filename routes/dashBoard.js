@@ -213,5 +213,55 @@ router.get("/view/:fileId", ensureAuthenticated, async (req, res) => {
   }
 });
 
+router.post("/folder/delete", ensureAuthenticated, async (req, res) => {
+  const folderId = parseInt(req.query.folderId);
+
+  console.log(folderId);
+
+  try {
+    await prisma.$transaction([
+      prisma.file.deleteMany({
+        where: {
+          folderId: folderId,
+        },
+      }),
+      prisma.folder.delete({
+        where: {
+          id: folderId,
+        },
+      }),
+    ]);
+    res.redirect("/");
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.post("/folder/rename", ensureAuthenticated, async (req, res) => {
+  const folderId = parseInt(req.body.folderId);
+  const newName = req.body.newFolderName;
+
+  if (!newName || !folderId) {
+    return res.status(400).send("Folder ID and new name are required");
+  }
+
+  try {
+    await prisma.folder.update({
+      where: {
+        id: folderId,
+        userId: req.user.id,
+      },
+      data: {
+        name: newName,
+      },
+    });
+
+    res.redirect("/dashboard");
+  } catch (error) {
+    console.error("Error renaming folder:", error);
+    res.status(500).send("Error renaming folder");
+  }
+});
+
 export default router;
 export { uploadDir };
