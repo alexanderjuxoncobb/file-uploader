@@ -1,7 +1,10 @@
 // config/passport.js
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
-import pool from "../db/pool.js";
+// import pool from "../db/pool.js";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export default function configurePassport(passport) {
   passport.use(
@@ -14,16 +17,14 @@ export default function configurePassport(passport) {
       async (email, password, done) => {
         // Strategy implementation
         try {
-          const { rows } = await pool.query(
-            'SELECT * FROM "members-only" WHERE email = $1',
-            [email]
-          );
-          const user = rows[0];
+          const user = await prisma.user.findUnique({
+            where: { email: email },
+          });
 
           if (!user) {
             return done(null, false, { message: "Incorrect email" });
           }
-          console.log(typeof password, typeof String(user.password));
+
           const match = await bcrypt.compare(password, String(user.password));
           if (!match) {
             // passwords do not match!
@@ -43,11 +44,9 @@ export default function configurePassport(passport) {
 
   passport.deserializeUser(async (id, done) => {
     try {
-      const { rows } = await pool.query(
-        'SELECT * FROM "members-only" WHERE id = $1',
-        [id]
-      );
-      const user = rows[0];
+      const user = await prisma.user.findUnique({
+        where: { id: id },
+      });
 
       done(null, user);
     } catch (err) {

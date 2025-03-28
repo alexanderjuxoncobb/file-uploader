@@ -3,7 +3,7 @@ const app = express();
 import path from "node:path";
 import indexRouter from "./routes/index.js";
 import signupRouter from "./routes/signup.js";
-import dashboardRouter from "./routes/dashBoard.js";
+import dashboardRouter, { uploadDir } from "./routes/dashBoard.js";
 
 import session from "express-session";
 import passport from "passport";
@@ -20,14 +20,25 @@ const __dirname = dirname(__filename);
 const assetsPath = path.join(__dirname, "public");
 app.use(express.static(assetsPath));
 
-// Session and Passport setup
+import { PrismaClient } from "@prisma/client";
+import { PrismaSessionStore } from "@quixo3/prisma-session-store";
+
+const prisma = new PrismaClient();
+
+// Then replace your current session middleware with:
 app.use(
   session({
-    secret: "members",
+    secret: "secret",
     resave: false,
     saveUninitialized: false,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 }, // 1 day
+    store: new PrismaSessionStore(prisma, {
+      checkPeriod: 2 * 60 * 1000, // 2 minutes
+      dbRecordIdIsSessionId: true,
+    }),
   })
 );
+
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
@@ -44,6 +55,10 @@ app.set("view engine", "ejs");
 app.use("/", indexRouter);
 app.use("/signup", signupRouter);
 app.use("/dashboard", dashboardRouter);
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// const uploadsPath = path.join(__dirname, "file-uploader/uploads");
+// console.log("Uploads directory path:", uploadsPath);
+app.use("/uploads", express.static(uploadDir));
 
 app.listen(8080, () => {
   console.log("First express app");

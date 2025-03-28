@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      li {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 5px;
+      }
+
+      .file-container {
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .file-container img {
+        max-width: 300px;
+        max-height: 300px;
+        object-fit: contain;
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      .pdf-container {
+        width: 100%;
+        height: 400px;
+        margin-bottom: 10px;
+      }
+
+      .pdf-container object {
+        width: 100%;
+        height: 100%;
+      }
+
+      .download-link {
+        display: inline-block;
+        margin-top: 5px;
+        text-decoration: none;
+        color: #0066cc;
+      }
+
+      form {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+      }
+
+      button {
+        margin-left: 10px;
+        padding: 5px 10px;
+        background-color: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      select {
+        padding: 5px;
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <p>User: <%=user.email%></p>
+
+    <form
+      action="/dashboard/upload"
+      method="post"
+      enctype="multipart/form-data"
+    >
+      <input type="file" name="fileToUpload" required />
+
+      <select name="folderId">
+        <option value="">No Folder</option>
+        <% if (folders && folders.length > 0) { %> <%
+        folders.forEach(function(folder) { %>
+        <option value="<%= folder.id %>"><%= folder.name %></option>
+        <% }); %> <% } %>
+      </select>
+
+      <button type="submit">Upload</button>
+    </form>
+
+    <form action="/dashboard/create-folder" method="post">
+      <input
+        type="text"
+        name="folderName"
+        placeholder="Enter folder name"
+        required
+      />
+      <button type="submit">Create Folder</button>
+    </form>
+
+    <h2>Folders</h2>
+    <ul class="folders-list">
+      <% if (folders && folders.length > 0) { %> <%
+      folders.forEach(function(folder) { %>
+      <li>
+        <a href="/dashboard/folder/<%= folder.id %>"><%= folder.name %></a>
+      </li>
+      <% }); %> <% } else { %>
+      <li>No folders created yet</li>
+      <% } %>
+    </ul>
+
+    <h2>Files</h2>
+    <ul>
+      <% if (files && files.length > 0) { %> <% files.forEach(function(file) {
+      %>
+      <li>
+        <% if (file.mimetype && file.mimetype.startsWith('image/')) { %>
+        <div class="file-container">
+          <img src="/dashboard/view/<%= file.id %>" alt="<%= file.name %>" />
+          <a href="<%= file.path %>" class="download-link" download
+            >Download <%= file.name %></a
+          >
+        </div>
+        <% } else if (file.mimetype === 'application/pdf') { %>
+        <div class="pdf-container">
+          <object data="/dashboard/view/<%= file.id %>" type="application/pdf">
+            <p>
+              Unable to display PDF.
+              <a href="<%= file.path %>" download>Download Instead</a>
+            </p>
+          </object>
+        </div>
+        <a href="<%= file.path %>" class="download-link" download
+          >Download <%= file.name %></a
+        >
+        <% } else { %>
+        <a href="/dashboard/view/<%= file.id %>"><%= file.name %></a>
+        <a href="<%= file.path %>" class="download-link" download>(Download)</a>
+        <% } %>
+      </li>
+      <% }); %> <% } else { %>
+      <li>No files outside folders</li>
+      <% } %>
+    </ul>
+  </body>
+</html>

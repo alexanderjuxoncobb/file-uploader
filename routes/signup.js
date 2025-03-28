@@ -16,11 +16,7 @@ router.post("/", async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-    await userConfig.createUser(
-      req.body.fullname,
-      req.body.email,
-      hashedPassword
-    );
+    await userConfig.createUser(req.body.email, hashedPassword);
 
     res.redirect("/");
   } catch (err) {
